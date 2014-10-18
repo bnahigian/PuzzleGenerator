@@ -16,15 +16,15 @@ void GeneratePuzzle(int nRows, int nColumns, int minVal, int maxVal, Timer* t)
 {
 	Puzzle* puz = new Puzzle(nRows, nColumns, minVal, maxVal);
 	puz->checkPuzzle();
-	/*if (t->GetElapsedTime() < 55)
+	int time = t->GetElapsedTime();
+	while ( time< 55)
 	{
 		puz->generatePuzzle();
 		puz->checkPuzzle();
+		time = t->GetElapsedTime();
 	}
-	else//*/
-	{
-		puz->printPuzzle();
-	}
+
+	puz->printPuzzle();
 }
 
 int main(int argc, char **argv)

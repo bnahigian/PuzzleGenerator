@@ -36,7 +36,10 @@ public:
 	Cell** generatePuzzle();
 	void checkPuzzle();
 	void dijkstra(PuzSolution* sol);
+	void backwardsExplore(std::list<Cell*> nodes);
+	void findStats(std::list<Cell*> nodes, PuzSolution* sol);
 	Cell* lowestCostCell(std::list<Cell*> in_current);
+	Cell* lowestCostCellBackwards(std::list<Cell*> in_current);
 
 	void calculateConnectedCells(Cell* in_cell);
 
@@ -46,5 +49,6 @@ public:
 	int m_min;
 	int m_max;
 	PuzSolution* m_bestSol;
+	int unexplored;
 };
 #endif
