@@ -15,13 +15,19 @@ using namespace std;
 void GeneratePuzzle(int nRows, int nColumns, int minVal, int maxVal, Timer* t)
 {
 	Puzzle* puz = new Puzzle(nRows, nColumns, minVal, maxVal);
+	float avgElapsed = 0;
+	float runs = 0;
 	puz->checkPuzzle();
+	runs++;
+	avgElapsed = t->GetElapsedTime() / runs;
 	int time = t->GetElapsedTime();
-	while ( time< 55)
+	while ( time + (avgElapsed*1.25f)<60)//margin of error given for slow runs
 	{
 		puz->generatePuzzle();
 		puz->checkPuzzle();
 		time = t->GetElapsedTime();
+		runs++;
+		avgElapsed = time / runs;
 	}
 
 	puz->printPuzzle();
