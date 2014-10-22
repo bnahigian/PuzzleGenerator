@@ -102,6 +102,10 @@ void Puzzle::checkPuzzle()
 	{
 		m_bestSol = sol;
 	}
+	else
+	{
+		delete(sol);
+	}
 }
 
 void Puzzle::dijkstra(PuzSolution* sol)
@@ -137,10 +141,11 @@ void Puzzle::dijkstra(PuzSolution* sol)
 		{
 			Cell* child = *itr;
 			int val = child->m_fCost;
-			child->m_parents+=1;//reached by a node, increase parents
+			child->m_parents+=l_cell->m_parents +1;//Check this
 			child->m_reachedBy.push_back(l_cell);//used for backwards search
 			if ((l_cell->m_fCost + 1) < val)
 			{
+				child->m_parents = l_cell->m_parents + 1;// Check this
 				child->m_Parent = l_cell;
 				child->m_fCost = l_cell->m_fCost + 1;
 				child->m_pathTo.empty();
@@ -169,16 +174,16 @@ void Puzzle::dijkstra(PuzSolution* sol)
 			}
 			else if((l_cell->m_fCost + 1) == val)
 			{
-				child->m_unique = false;// not unique to reach :(
+				//Do something here
 			}
 		}
 	}
 
-	sol->m_puzzle = m_puzzle;
-
 	//backwards explore here
 	backwardsExplore(nodes);
 
+
+	sol->m_puzzle = m_puzzle;
 	//find stats here
 	findStats(nodes, sol);
 
@@ -189,19 +194,20 @@ void Puzzle::calculateConnectedCells(Cell* in_Cell)
 	int l_val = in_Cell->m_value;
 	int l_row = in_Cell->m_row;
 	int l_col = in_Cell->m_col;
-	if (l_row + l_val < m_Rows)
+
+	if (l_row + l_val < m_Rows) //Down
 	{
 		in_Cell->m_connectedCells.push_back(&m_puzzle[l_row + l_val][l_col]);
 	}
-	if (l_row - l_val >= 0)
+	if (l_row - l_val >= 0) //Up
 	{
 		in_Cell->m_connectedCells.push_back(&m_puzzle[l_row - l_val][l_col]);
 	}
-	if (l_col + l_val < m_Cols)
+	if (l_col + l_val < m_Cols) //Right
 	{
 		in_Cell->m_connectedCells.push_back(&m_puzzle[l_row][l_col+l_val]);
 	}
-	if (l_col - l_val >= 0)
+	if (l_col - l_val >= 0) //Left
 	{
 		in_Cell->m_connectedCells.push_back(&m_puzzle[l_row][l_col-l_val]);
 	}
@@ -222,6 +228,7 @@ void Puzzle::backwardsExplore(std::list<Cell*> nodes)
 		{
 			int val = (*itr)->m_fCost;
 			Cell* child = *itr;
+			child->m_backwardsparents += 1;//check this
 			if ((l_cell->m_fCost + 1) < val)
 			{
 				child->m_fCost = l_cell->m_fCost + 1;
@@ -232,11 +239,11 @@ void Puzzle::backwardsExplore(std::list<Cell*> nodes)
 
 void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 {
-	Cell temp = sol->m_puzzle[m_Rows - 1][m_Cols - 1];
-	if (temp.m_parents > 0)
+	Cell goal = sol->m_puzzle[m_Rows - 1][m_Cols - 1];
+	if (goal.m_parents > 0)//check this
 	{
 		sol->m_solution = true;
-		sol->m_unique = m_puzzle[m_Rows - 1][m_Cols - 1].m_unique;
+		sol->m_unique = false;
 
 		for (std::list<Cell*>::const_iterator itr = nodes.begin(), end = nodes.end(); itr != end; ++itr)
 		{
