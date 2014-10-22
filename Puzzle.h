@@ -13,17 +13,17 @@ public:
 
 	void CalculateScore();
 
-	Cell** m_puzzle;
-	bool m_solution;
-	bool m_unique;
-	std::list<direction> m_path;
-	int m_rows;
-	int m_cols;
-	int m_blackHoles;
-	int m_whiteHoles;
-	int m_forwardForced;
-	int m_backwardForced;
-	int m_score;
+	Cell** m_puzzle; //The puzzle for the best solution
+	bool m_solution; //if there is a solution or not
+	bool m_unique; //if there is a unique solution or not
+	std::list<direction> m_path; //the shortest path from the start to the goal cell
+	int m_rows; //number of rows
+	int m_cols; //number of cols
+	int m_blackHoles; //number of cells reachable from the beginning but don't reach end
+	int m_whiteHoles; //number of cells that are not reachable from the beginning but can reach the end
+	int m_forwardForced; //number of cells that only have 1 connected Cell and is reachable (can get to from start)
+	int m_backwardForced; //number of cells that are only reached by 1 Cell and is a reaching cell (gets to end)
+	int m_score; //the total score of the puzzle
 };
 
 class Puzzle
@@ -32,8 +32,8 @@ public:
 	Puzzle(int nRows, int nColumns, int minVal, int maxVal);
 	~Puzzle();
 
-	void printPuzzle();
-	Cell** generatePuzzle();
+	void printPuzzle(); //prints the puzzle
+	Cell** generatePuzzle(); //generates the puzzle using the values given
 	void checkPuzzle();
 	void dijkstra(PuzSolution* sol);
 	void backwardsExplore(std::list<Cell*> nodes);
@@ -43,12 +43,12 @@ public:
 
 	void calculateConnectedCells(Cell* in_cell);
 
-	Cell** m_puzzle;
-	int m_Rows;
-	int m_Cols;
-	int m_min;
-	int m_max;
-	PuzSolution* m_bestSol;
+	Cell** m_puzzle; //the current puzzle being tested
+	int m_Rows; //the number of rows entered
+	int m_Cols; //the number of cols entered
+	int m_min; // the min value in the range entered
+	int m_max; //the max value in the range entered
+	PuzSolution* m_bestSol; //the best puzzle solution so far
 	int unexplored;
 };
 #endif
