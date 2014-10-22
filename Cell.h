@@ -13,27 +13,35 @@ class Cell{
 		m_backCost = INT_MAX;
 		m_explored = false;
 		m_backwardsExplore = false;
-		m_unique = true;
 		m_parents = 0;
+		m_backwardsparents = 0;
 	}
 
 	Cell()
 	{
-		
+		m_value = 0;
+		m_row = 0;
+		m_col = 0;
+		m_fCost = INT_MAX;//infinity
+		m_backCost = INT_MAX;
+		m_explored = false;
+		m_backwardsExplore = false;
+		m_parents = 0;
+		m_backwardsparents = 0;
 	}
 
-	int m_value;
-	int m_row;
-	int m_col;
-	int m_fCost;
-	int m_backCost;
-	bool m_explored;
-	bool m_backwardsExplore;
-	int m_parents;
-	bool m_unique;
-	std::list<Cell*> m_connectedCells;
-	std::list<direction>  m_pathTo;
-	std::list<Cell*> m_reachedBy;
-	Cell* m_Parent;//if there is a shortest path, 
+	int m_value; //value stored in cell
+	int m_row; //row for cell
+	int m_col; //column for cell
+	int m_fCost; //cost of getting to cell from start
+	int m_backCost; //cost of getting to cell from end
+	bool m_explored; //if this cell has been explored
+	bool m_backwardsExplore; //if this cell has been explored by backwards check
+	int m_parents; //number of ways to get to this node
+	int m_backwardsparents; //number of ways to get to this node backwards
+	std::list<Cell*> m_connectedCells; //Cells you can reach from this one
+	std::list<direction>  m_pathTo; //Path to get to this cell
+	std::list<Cell*> m_reachedBy; //Cells that can reach this Cell
+	Cell* m_Parent;//the Cell that reaches this one by the shortest path
 };
 #endif
