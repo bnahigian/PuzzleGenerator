@@ -92,6 +92,7 @@ void Puzzle::checkPuzzle()
 	}
 	else//perform hillclimbing here
 	{
+		printf("Hillclimb\n");
 		*sol->m_puzzle = *m_bestSol->m_puzzle;
 	}
 	
