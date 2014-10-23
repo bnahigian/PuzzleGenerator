@@ -2,6 +2,7 @@
 #define PUZZLE_H
 #include <stdio.h>
 #include <cstdlib>
+#include <climits>
 #include "Cell.h"
 
 class PuzSolution

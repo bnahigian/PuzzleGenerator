@@ -3,7 +3,7 @@ CFLAGS = -O3
 EXEC = PuzzleGenerator
 	
 all:
-	$(CC) $(CFLAGS) -o $(EXEC) main.cpp
+	$(CC) $(CFLAGS) -o $(EXEC) Puzzle.cpp main.cpp
 	
 clean:
 	rm -f $(EXEC)
