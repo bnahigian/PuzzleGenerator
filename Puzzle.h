@@ -8,9 +8,27 @@
 class PuzSolution
 {
 public:
-	PuzSolution() :m_solution(false), m_unique(false), m_rows(0), m_cols(0), m_backwardForced(0), m_forwardForced(0), m_blackHoles(0), m_whiteHoles(0), m_score(0)
-	{};
-	~PuzSolution();
+	PuzSolution(int in_rows, int in_cols) :m_solution(false), m_unique(false), m_rows(in_rows), m_cols(in_cols), m_backwardForced(0), m_forwardForced(0), m_blackHoles(0), m_whiteHoles(0), m_score(0)
+	{
+		m_puzzle = new Cell*[in_rows];
+
+		for (int i = 0; i < in_rows; i++)
+		{
+			m_puzzle[i] = new Cell[in_cols];
+
+			for (int j = 0; j < in_cols; j++)
+			{
+				m_puzzle[i][j].m_row = i;
+				m_puzzle[i][j].m_col = j;
+			}
+		}
+	};
+	~PuzSolution()
+	{
+		m_path.clear();
+
+		delete m_puzzle;
+	};
 
 	void CalculateScore();
 

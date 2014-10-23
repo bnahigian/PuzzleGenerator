@@ -84,10 +84,17 @@ Cell** Puzzle::generatePuzzle()
 //done (no hillclimbing yet)
 void Puzzle::checkPuzzle()
 {
-	PuzSolution* sol = new PuzSolution();
-	sol->m_rows = m_Rows;
-	sol->m_cols = m_Cols;
-	sol->m_puzzle = generatePuzzle();
+	PuzSolution* sol = new PuzSolution(m_Rows, m_Cols);
+
+	if (m_bestSol == NULL || m_bestSol->m_solution == false) //we want to try and generate a puzzle with a solution first. then hill climb
+	{
+		sol->m_puzzle = generatePuzzle();
+	}
+	else//perform hillclimbing here
+	{
+		*sol->m_puzzle = *m_bestSol->m_puzzle;
+	}
+	
 	dijkstra(sol);
 	sol->CalculateScore();
 	if (m_bestSol == NULL)
@@ -96,11 +103,15 @@ void Puzzle::checkPuzzle()
 	}
 	else if (m_bestSol->m_score < sol->m_score)
 	{
+		printPuzzle();
+		m_bestSol->~PuzSolution();
+		m_bestSol = NULL;
 		m_bestSol = sol;
 	}
 	else
 	{
-		delete sol->m_puzzle;
+		//random chance of keeping it in the future
+		sol->~PuzSolution();
 	}
 }
 
@@ -120,6 +131,7 @@ void Puzzle::dijkstra(PuzSolution* sol)
 			sol->m_puzzle[i][j].m_Parent = NULL;
 			sol->m_puzzle[i][j].m_pathesTo = 0;
 			sol->m_puzzle[i][j].m_backwardspathesTo = 0;
+			sol->m_puzzle[i][j].m_reachedBy.empty();
 			calculateConnectedCells(&sol->m_puzzle[i][j], sol);
 			nodes.push_back(&sol->m_puzzle[i][j]);
 		}
@@ -200,6 +212,8 @@ void Puzzle::calculateConnectedCells(Cell* in_Cell, PuzSolution* sol)
 	int l_val = in_Cell->m_value;
 	int l_row = in_Cell->m_row;
 	int l_col = in_Cell->m_col;
+
+	in_Cell->m_connectedCells.empty();//make sure to clear this list
 
 	if (l_row + l_val < m_Rows) //Down
 	{
@@ -376,7 +390,7 @@ void PuzSolution::CalculateScore()
 	else
 	{
 		m_unique = false;
+		m_score = -400;//penalty for no solution
 	}
-
 	m_score -= (2 * (m_blackHoles+m_whiteHoles+m_backwardForced + m_forwardForced));
 }
