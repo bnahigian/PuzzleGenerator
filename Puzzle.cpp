@@ -8,18 +8,13 @@ Puzzle::Puzzle(int nRows, int nColumns, int minVal, int maxVal)
 	m_Cols = nColumns;
 	m_min = minVal;
 	m_max = maxVal;
-	m_puzzle = generatePuzzle();
 	m_bestSol = NULL;
 }
 
 Puzzle::~Puzzle()
 {
-	for (int i = 0; i < m_Rows; i++)
-	{
-		delete(m_puzzle[i]);
-	}
 }
-
+//done
 void Puzzle::printPuzzle()
 {
 	for (int i = 0; i < m_Rows; i++)
@@ -33,7 +28,7 @@ void Puzzle::printPuzzle()
 	}
 	
 	//now print shortest path
-	for (std::list<direction>::const_iterator itr = m_bestSol->m_puzzle[m_Rows - 1][m_Cols - 1].m_pathTo.begin(), end = m_bestSol->m_puzzle[m_Rows - 1][m_Cols - 1].m_pathTo.end(); itr != end; ++itr)
+	for (std::list<direction>::const_iterator itr = m_bestSol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path.begin(), end = m_bestSol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path.end(); itr != end; ++itr)
 	{
 		if ((*itr) == UP)
 		{
@@ -63,7 +58,7 @@ void Puzzle::printPuzzle()
 	printf("# of forced backwards: %d\n", m_bestSol->m_backwardForced);
 	printf("Puzzle Score: %d\n\n", m_bestSol->m_score);
 }
-
+//done
 Cell** Puzzle::generatePuzzle()
 {
 	srand(time(NULL));
@@ -86,12 +81,13 @@ Cell** Puzzle::generatePuzzle()
 
 	return newPuz;
 }
-
+//done (no hillclimbing yet)
 void Puzzle::checkPuzzle()
 {
 	PuzSolution* sol = new PuzSolution();
 	sol->m_rows = m_Rows;
 	sol->m_cols = m_Cols;
+	sol->m_puzzle = generatePuzzle();
 	dijkstra(sol);
 	sol->CalculateScore();
 	if (m_bestSol == NULL)
@@ -104,7 +100,7 @@ void Puzzle::checkPuzzle()
 	}
 	else
 	{
-		delete(sol);
+		delete sol->m_puzzle;
 	}
 }
 
@@ -116,19 +112,22 @@ void Puzzle::dijkstra(PuzSolution* sol)
 	{
 		for (int j = 0; j < m_Cols; j++)
 		{
-			m_puzzle[i][j].m_explored = false;
-			m_puzzle[i][j].m_backwardsExplore = false;
-			m_puzzle[i][j].m_fCost = INT_MAX;
-			m_puzzle[i][j].m_backCost = INT_MAX;
-			m_puzzle[i][j].m_pathTo.clear();
-			m_puzzle[i][j].m_Parent = NULL;
-			m_puzzle[i][j].m_parents = 0;
-			calculateConnectedCells(&m_puzzle[i][j]);
-			nodes.push_back(&m_puzzle[i][j]);
+			sol->m_puzzle[i][j].m_explored = false;
+			sol->m_puzzle[i][j].m_backwardsExplore = false;
+			sol->m_puzzle[i][j].m_fCost = INT_MAX;
+			sol->m_puzzle[i][j].m_backCost = INT_MAX;
+			sol->m_puzzle[i][j].m_path.clear();
+			sol->m_puzzle[i][j].m_Parent = NULL;
+			sol->m_puzzle[i][j].m_pathesTo = 0;
+			sol->m_puzzle[i][j].m_backwardspathesTo = 0;
+			calculateConnectedCells(&sol->m_puzzle[i][j], sol);
+			nodes.push_back(&sol->m_puzzle[i][j]);
 		}
 	}
-	m_puzzle[0][0].m_fCost = 0;
-	m_puzzle[m_Rows-1][m_Cols-1].m_backCost = 0;
+	sol->m_puzzle[0][0].m_fCost = 0;
+	sol->m_puzzle[0][0].m_pathesTo = 1;
+	sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_backCost = 0;
+	sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_backwardspathesTo = 1;
 	unexplored = nodes.size();
 	while (unexplored>0)
 	{
@@ -141,40 +140,49 @@ void Puzzle::dijkstra(PuzSolution* sol)
 		{
 			Cell* child = *itr;
 			int val = child->m_fCost;
-			child->m_parents+=l_cell->m_parents +1;//Check this
+			child->m_pathesTo += l_cell->m_pathesTo;//Check this
 			child->m_reachedBy.push_back(l_cell);//used for backwards search
-			if ((l_cell->m_fCost + 1) < val)
+			if (l_cell->m_fCost != INT_MAX)
 			{
-				child->m_parents = l_cell->m_parents + 1;// Check this
-				child->m_Parent = l_cell;
-				child->m_fCost = l_cell->m_fCost + 1;
-				child->m_pathTo.empty();
-				child->m_pathTo = l_cell->m_pathTo;
-				//update Path to
-				if (child->m_row < l_cell->m_row)
+				if ((l_cell->m_fCost + 1) < val)
 				{
-					//up
-					child->m_pathTo.push_back(UP);
+					if (child->m_row == m_Rows - 1 & child->m_col == m_Cols - 1)
+					{
+						sol->m_unique = true;
+					}
+					child->m_Parent = l_cell;
+					child->m_fCost = l_cell->m_fCost + 1;
+					child->m_path.empty();
+					child->m_path = l_cell->m_path;
+					//update Path to
+					if (child->m_row < l_cell->m_row)
+					{
+						//up
+						child->m_path.push_back(UP);
+					}
+					else if (child->m_row > l_cell->m_row)
+					{
+						//down
+						child->m_path.push_back(DOWN);
+					}
+					else if (child->m_col < l_cell->m_col)
+					{
+						//left
+						child->m_path.push_back(LEFT);
+					}
+					else if (child->m_col > l_cell->m_col)
+					{
+						//right
+						child->m_path.push_back(RIGHT);
+					}
 				}
-				else if (child->m_row > l_cell->m_row)
+				else if ((l_cell->m_fCost + 1) == val)
 				{
-					//down
-					child->m_pathTo.push_back(DOWN);
+					if (child->m_row == m_Rows - 1 & child->m_col == m_Cols - 1)
+					{
+						sol->m_unique = false;
+					}
 				}
-				else if (child->m_col < l_cell->m_col)
-				{
-					//left
-					child->m_pathTo.push_back(LEFT);
-				}
-				else if (child->m_col > l_cell->m_col)
-				{
-					//right
-					child->m_pathTo.push_back(RIGHT);
-				}
-			}
-			else if((l_cell->m_fCost + 1) == val)
-			{
-				//Do something here
 			}
 		}
 	}
@@ -182,14 +190,12 @@ void Puzzle::dijkstra(PuzSolution* sol)
 	//backwards explore here
 	backwardsExplore(nodes);
 
-
-	sol->m_puzzle = m_puzzle;
 	//find stats here
 	findStats(nodes, sol);
 
 }
 
-void Puzzle::calculateConnectedCells(Cell* in_Cell)
+void Puzzle::calculateConnectedCells(Cell* in_Cell, PuzSolution* sol)
 {
 	int l_val = in_Cell->m_value;
 	int l_row = in_Cell->m_row;
@@ -197,19 +203,19 @@ void Puzzle::calculateConnectedCells(Cell* in_Cell)
 
 	if (l_row + l_val < m_Rows) //Down
 	{
-		in_Cell->m_connectedCells.push_back(&m_puzzle[l_row + l_val][l_col]);
+		in_Cell->m_connectedCells.push_back(&sol->m_puzzle[l_row + l_val][l_col]);
 	}
 	if (l_row - l_val >= 0) //Up
 	{
-		in_Cell->m_connectedCells.push_back(&m_puzzle[l_row - l_val][l_col]);
+		in_Cell->m_connectedCells.push_back(&sol->m_puzzle[l_row - l_val][l_col]);
 	}
 	if (l_col + l_val < m_Cols) //Right
 	{
-		in_Cell->m_connectedCells.push_back(&m_puzzle[l_row][l_col+l_val]);
+		in_Cell->m_connectedCells.push_back(&sol->m_puzzle[l_row][l_col + l_val]);
 	}
 	if (l_col - l_val >= 0) //Left
 	{
-		in_Cell->m_connectedCells.push_back(&m_puzzle[l_row][l_col-l_val]);
+		in_Cell->m_connectedCells.push_back(&sol->m_puzzle[l_row][l_col - l_val]);
 	}
 }
 
@@ -228,7 +234,7 @@ void Puzzle::backwardsExplore(std::list<Cell*> nodes)
 		{
 			int val = (*itr)->m_fCost;
 			Cell* child = *itr;
-			child->m_backwardsparents += 1;//check this
+			child->m_backwardspathesTo += l_cell->m_backwardspathesTo;
 			if ((l_cell->m_fCost + 1) < val)
 			{
 				child->m_fCost = l_cell->m_fCost + 1;
@@ -239,11 +245,10 @@ void Puzzle::backwardsExplore(std::list<Cell*> nodes)
 
 void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 {
-	Cell goal = sol->m_puzzle[m_Rows - 1][m_Cols - 1];
-	if (goal.m_parents > 0)//check this
+	Cell goal = sol->m_puzzle[m_Rows - 1][m_Cols - 1];//goal cell
+	if (goal.m_path.size() >= 2)//min path length
 	{
 		sol->m_solution = true;
-		sol->m_unique = false;
 
 		for (std::list<Cell*>::const_iterator itr = nodes.begin(), end = nodes.end(); itr != end; ++itr)
 		{
@@ -259,23 +264,24 @@ void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 					sol->m_forwardForced++;
 				}
 			}
-			if (temp->m_backwardsExplore == false)
+			if (temp->m_backwardsExplore == false) //can't be reached from end so not reaching
 			{
 				sol->m_blackHoles++;
 			}
 			else
 			{
-				if (temp->m_parents == 1)
+				if (temp->m_pathesTo == 1)//only one cell enters this one
 				{
 					sol->m_backwardForced++;
 				}
 			}
 		}
-		sol->m_path = m_puzzle[m_Rows - 1][m_Cols - 1].m_pathTo;
+		sol->m_path = sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path;
 	}
 
 }
 //returns the lowest cost cell in the unexplored set
+//Done
 Cell* Puzzle::lowestCostCell(std::list<Cell*> in_current)
 {
 	Cell* l_cell = NULL;
@@ -314,7 +320,7 @@ Cell* Puzzle::lowestCostCell(std::list<Cell*> in_current)
 
 	return l_cell;
 }
-
+//Done
 Cell* Puzzle::lowestCostCellBackwards(std::list<Cell*> in_current)
 {
 	Cell* l_cell = NULL;
@@ -356,12 +362,20 @@ Cell* Puzzle::lowestCostCellBackwards(std::list<Cell*> in_current)
 }
 
 //PuzSolution
+//Done
 void PuzSolution::CalculateScore()
 {
-	m_score = m_path.size() * 5;
-	if (m_unique)
+	if (m_solution)
 	{
-		m_score += (m_rows*m_cols);
+		m_score = m_path.size() * 5;
+		if (m_unique)
+		{
+			m_score += (m_rows*m_cols);
+		}
+	}
+	else
+	{
+		m_unique = false;
 	}
 
 	m_score -= (2 * (m_blackHoles+m_whiteHoles+m_backwardForced + m_forwardForced));

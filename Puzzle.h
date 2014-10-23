@@ -41,9 +41,8 @@ public:
 	Cell* lowestCostCell(std::list<Cell*> in_current);
 	Cell* lowestCostCellBackwards(std::list<Cell*> in_current);
 
-	void calculateConnectedCells(Cell* in_cell);
+	void calculateConnectedCells(Cell* in_Cell, PuzSolution* sol);
 
-	Cell** m_puzzle; //the current puzzle being tested
 	int m_Rows; //the number of rows entered
 	int m_Cols; //the number of cols entered
 	int m_min; // the min value in the range entered
