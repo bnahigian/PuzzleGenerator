@@ -136,7 +136,6 @@ void Puzzle::dijkstra(PuzSolution* sol)
 			sol->m_puzzle[i][j].m_path.clear();
 			sol->m_puzzle[i][j].m_Parent = NULL;
 			sol->m_puzzle[i][j].m_pathesTo = 0;
-			sol->m_puzzle[i][j].m_backwardspathesTo = 0;
 			sol->m_puzzle[i][j].m_reachedBy.empty();
 			calculateConnectedCells(&sol->m_puzzle[i][j], sol);
 			nodes.push_back(&sol->m_puzzle[i][j]);
@@ -145,12 +144,11 @@ void Puzzle::dijkstra(PuzSolution* sol)
 	sol->m_puzzle[0][0].m_fCost = 0;
 	sol->m_puzzle[0][0].m_pathesTo = 1;
 	sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_backCost = 0;
-	sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_backwardspathesTo = 1;
-	unexplored = nodes.size();
-	while (unexplored>0)
+
+	while (nodes.size()>0)
 	{
 		//pick min distance vertex of those not visited
-		Cell* l_cell = lowestCostCell(nodes);
+		Cell* l_cell = lowestCostCell(&nodes);
 
 		//update value of all childrenNodes
 		//set fcost and parentNode and steps/direction to get there
@@ -158,7 +156,6 @@ void Puzzle::dijkstra(PuzSolution* sol)
 		{
 			Cell* child = *itr;
 			int val = child->m_fCost;
-			child->m_pathesTo += l_cell->m_pathesTo;//Check this
 			child->m_reachedBy.push_back(l_cell);//used for backwards search
 			if (l_cell->m_fCost != INT_MAX)
 			{
@@ -172,6 +169,7 @@ void Puzzle::dijkstra(PuzSolution* sol)
 					child->m_fCost = l_cell->m_fCost + 1;
 					child->m_path.empty();
 					child->m_path = l_cell->m_path;
+					child->m_pathesTo = l_cell->m_pathesTo;
 					//update Path to
 					if (child->m_row < l_cell->m_row)
 					{
@@ -198,7 +196,8 @@ void Puzzle::dijkstra(PuzSolution* sol)
 				{
 					if (child->m_row == m_Rows - 1 & child->m_col == m_Cols - 1)
 					{
-						sol->m_unique = false;
+						child->m_pathesTo += l_cell->m_pathesTo;//Check this
+						//sol->m_unique = false;
 					}
 				}
 			}
@@ -206,6 +205,13 @@ void Puzzle::dijkstra(PuzSolution* sol)
 	}
 
 	//backwards explore here
+	for (int i = 0; i < m_Rows; i++)
+	{
+		for (int j = 0; j < m_Cols; j++)
+		{
+			nodes.push_back(&sol->m_puzzle[i][j]);
+		}
+	}
 	backwardsExplore(nodes);
 
 	//find stats here
@@ -241,12 +247,10 @@ void Puzzle::calculateConnectedCells(Cell* in_Cell, PuzSolution* sol)
 
 void Puzzle::backwardsExplore(std::list<Cell*> nodes)
 {
-	unexplored = nodes.size();
-
-	while (unexplored>0)
+	while (nodes.size()>0)
 	{
 		//pick min distance vertex of those not visited
-		Cell* l_cell = lowestCostCellBackwards(nodes);
+		Cell* l_cell = lowestCostCellBackwards(&nodes);
 
 		//update value of all childrenNodes
 		//set fcost and parentNode and steps/direction to get there
@@ -254,7 +258,6 @@ void Puzzle::backwardsExplore(std::list<Cell*> nodes)
 		{
 			int val = (*itr)->m_fCost;
 			Cell* child = *itr;
-			child->m_backwardspathesTo += l_cell->m_backwardspathesTo;
 			if ((l_cell->m_fCost + 1) < val)
 			{
 				child->m_fCost = l_cell->m_fCost + 1;
@@ -290,11 +293,15 @@ void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 			}
 			else
 			{
-				if (temp->m_pathesTo == 1)//only one cell enters this one
+				if (temp->m_reachedBy.size() == 1)//only one cell enters this one
 				{
 					sol->m_backwardForced++;
 				}
 			}
+		}
+		if (sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_pathesTo == 1)
+		{
+			sol->m_unique = true;
 		}
 		sol->m_path = sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path;
 	}
@@ -321,11 +328,11 @@ void Puzzle::hillClimb(PuzSolution* sol)
 
 //returns the lowest cost cell in the unexplored set
 //Done
-Cell* Puzzle::lowestCostCell(std::list<Cell*> in_current)
+Cell* Puzzle::lowestCostCell(std::list<Cell*>* in_current)
 {
 	Cell* l_cell = NULL;
 
-	for (std::list<Cell*>::const_iterator itr = in_current.begin(), end = in_current.end(); itr != end; ++itr)
+	for (std::list<Cell*>::const_iterator itr = in_current->begin(), end = in_current->end(); itr != end; ++itr)
 	{
 		if ((*itr)->m_explored == false)
 		{
@@ -351,20 +358,19 @@ Cell* Puzzle::lowestCostCell(std::list<Cell*> in_current)
 			}
 		}
 	}
-	if (l_cell->m_explored == false)
-	{
-		unexplored -= 1;
-	}
+
 	l_cell->m_explored = true;
+
+	in_current->remove(l_cell);
 
 	return l_cell;
 }
 //Done
-Cell* Puzzle::lowestCostCellBackwards(std::list<Cell*> in_current)
+Cell* Puzzle::lowestCostCellBackwards(std::list<Cell*>* in_current)
 {
 	Cell* l_cell = NULL;
 
-	for (std::list<Cell*>::const_iterator itr = in_current.begin(), end = in_current.end(); itr != end; ++itr)
+	for (std::list<Cell*>::const_iterator itr = in_current->begin(), end = in_current->end(); itr != end; ++itr)
 	{
 		if ((*itr)->m_backwardsExplore == false)
 		{
@@ -391,11 +397,9 @@ Cell* Puzzle::lowestCostCellBackwards(std::list<Cell*> in_current)
 		}
 	}
 
-	if (l_cell->m_backwardsExplore == false)
-	{
-		unexplored -= 1;
-	}
 	l_cell->m_backwardsExplore = true;
+
+	in_current->remove(l_cell);
 
 	return l_cell;
 }

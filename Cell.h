@@ -14,7 +14,6 @@ class Cell{
 		m_explored = false;
 		m_backwardsExplore = false;
 		m_pathesTo = 0;
-		m_backwardspathesTo = 0;
 	}
 
 	Cell()
@@ -27,7 +26,6 @@ class Cell{
 		m_explored = false;
 		m_backwardsExplore = false;
 		m_pathesTo = 0;
-		m_backwardspathesTo = 0;
 	}
 
 	~Cell()
@@ -51,8 +49,7 @@ class Cell{
 	int m_backCost; //cost of getting to cell from end
 	bool m_explored; //if this cell has been explored
 	bool m_backwardsExplore; //if this cell has been explored by backwards check
-	int m_pathesTo; //number of ways to get to this node
-	int m_backwardspathesTo; //number of ways to get to this node backwards
+	int m_pathesTo; //number of ways to get to this node with equal shortest path
 	std::list<Cell*> m_connectedCells; //Cells you can reach from this one
 	std::list<direction>  m_path; //Path to get to this cell
 	std::list<Cell*> m_reachedBy; //Cells that can reach this Cell

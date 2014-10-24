@@ -58,8 +58,8 @@ public:
 	void backwardsExplore(std::list<Cell*> nodes);
 	void findStats(std::list<Cell*> nodes, PuzSolution* sol);
 	void hillClimb(PuzSolution* sol);
-	Cell* lowestCostCell(std::list<Cell*> in_current);
-	Cell* lowestCostCellBackwards(std::list<Cell*> in_current);
+	Cell* lowestCostCell(std::list<Cell*>* in_current);
+	Cell* lowestCostCellBackwards(std::list<Cell*>* in_current);
 
 	void calculateConnectedCells(Cell* in_Cell, PuzSolution* sol);
 
@@ -68,6 +68,5 @@ public:
 	int m_min; // the min value in the range entered
 	int m_max; //the max value in the range entered
 	PuzSolution* m_bestSol; //the best puzzle solution so far
-	int unexplored;
 };
 #endif
