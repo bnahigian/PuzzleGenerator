@@ -21,7 +21,7 @@ void GeneratePuzzle(int nRows, int nColumns, int minVal, int maxVal, Timer* t)
 	runs++;
 	avgElapsed = t->GetElapsedTime() / runs;
 	int time = t->GetElapsedTime();
-	while ( (time + (avgElapsed*1.25f))<15)//margin of error given for slow runs
+	while ( (time + (avgElapsed*1.25f))<5)//margin of error given for slow runs
 	{
 		puz->checkPuzzle();
 		time = t->GetElapsedTime();

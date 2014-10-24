@@ -57,6 +57,7 @@ public:
 	void dijkstra(PuzSolution* sol);
 	void backwardsExplore(std::list<Cell*> nodes);
 	void findStats(std::list<Cell*> nodes, PuzSolution* sol);
+	void hillClimb(PuzSolution* sol);
 	Cell* lowestCostCell(std::list<Cell*> in_current);
 	Cell* lowestCostCellBackwards(std::list<Cell*> in_current);
 

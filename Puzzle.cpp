@@ -92,8 +92,14 @@ void Puzzle::checkPuzzle()
 	}
 	else//perform hillclimbing here
 	{
-		printf("Hillclimb\n");
-		*sol->m_puzzle = *m_bestSol->m_puzzle;
+		for (int i = 0; i < m_Rows; i++)
+		{
+			for (int j = 0; j < m_Cols; j++)
+			{
+				sol->m_puzzle[i][j] = m_bestSol->m_puzzle[i][j];
+			}
+		}
+		hillClimb(sol);
 	}
 	
 	dijkstra(sol);
@@ -104,9 +110,8 @@ void Puzzle::checkPuzzle()
 	}
 	else if (m_bestSol->m_score < sol->m_score)
 	{
-		printPuzzle();
-		m_bestSol->~PuzSolution();
-		m_bestSol = NULL;
+		//printPuzzle();
+
 		m_bestSol = sol;
 	}
 	else
@@ -295,6 +300,25 @@ void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 	}
 
 }
+
+void Puzzle::hillClimb(PuzSolution* sol)
+{
+	Cell* l_cell = &sol->m_puzzle[m_Rows - 1][m_Cols - 1];
+	for (std::list<Cell*>::const_iterator itr = l_cell->m_reachedBy.begin(), end = l_cell->m_reachedBy.end(); itr != end; ++itr)
+	{
+		int val = (*itr)->m_value;
+
+		if (val <= m_min)
+		{
+			(*itr)->m_value = m_max;
+		}
+		else
+		{
+			(*itr)->m_value-=1;
+		}
+	}//*/
+}
+
 //returns the lowest cost cell in the unexplored set
 //Done
 Cell* Puzzle::lowestCostCell(std::list<Cell*> in_current)
