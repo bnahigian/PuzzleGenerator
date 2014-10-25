@@ -4,31 +4,34 @@
 //Puzzle
 Puzzle::Puzzle(int nRows, int nColumns, int minVal, int maxVal)
 {
+	srand(time(NULL));
 	m_Rows = nRows;
 	m_Cols = nColumns;
 	m_min = minVal;
 	m_max = maxVal;
 	m_bestSol = NULL;
+	m_sol = new PuzSolution(m_Rows, m_Cols);
+
 }
 
 Puzzle::~Puzzle()
 {
 }
 //done
-void Puzzle::printPuzzle()
+void Puzzle::printPuzzle(PuzSolution* sol)
 {
 	for (int i = 0; i < m_Rows; i++)
 	{
 		for (int j = 0; j < m_Cols; j++)
 		{
-			printf("%d ", m_bestSol->m_puzzle[i][j].m_value);
+			printf("%d ", sol->m_puzzle[i][j].m_value);
 		}
 
 		printf("\n");
 	}
 	
 	//now print shortest path
-	for (std::list<direction>::const_iterator itr = m_bestSol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path.begin(), end = m_bestSol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path.end(); itr != end; ++itr)
+	for (std::list<direction>::const_iterator itr = sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path.begin(), end = sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path.end(); itr != end; ++itr)
 	{
 		if ((*itr) == UP)
 		{
@@ -49,75 +52,73 @@ void Puzzle::printPuzzle()
 	}
 	printf("\n");
 
-	printf("Solution: %s\n", m_bestSol->m_solution ? "true" : "false");
-	printf("Unique: %s\n", m_bestSol->m_unique ? "true" : "false");
-	printf("Solution Length: %d\n", m_bestSol->m_path.size());
-	printf("# of black holes: %d\n", m_bestSol->m_blackHoles);
-	printf("# of white holes: %d\n", m_bestSol->m_whiteHoles);
-	printf("# of forced forwards: %d\n", m_bestSol->m_forwardForced);
-	printf("# of forced backwards: %d\n", m_bestSol->m_backwardForced);
-	printf("Puzzle Score: %d\n\n", m_bestSol->m_score);
+	printf("Solution: %s\n", sol->m_solution ? "true" : "false");
+	printf("Unique: %s\n", sol->m_unique ? "true" : "false");
+	printf("Solution Length: %d\n", sol->m_path.size());
+	printf("# of black holes: %d\n", sol->m_blackHoles);
+	printf("# of white holes: %d\n", sol->m_whiteHoles);
+	printf("# of forced forwards: %d\n", sol->m_forwardForced);
+	printf("# of forced backwards: %d\n", sol->m_backwardForced);
+	printf("Puzzle Score: %d\n\n", sol->m_score);
 }
 //done
-Cell** Puzzle::generatePuzzle()
+void Puzzle::generatePuzzle(PuzSolution* sol)
 {
-	srand(time(NULL));
-	Cell** newPuz = new Cell*[m_Rows];
+	for (int i = 0; i < m_Rows; i++)
+	{
+		delete[] sol->m_puzzle[i];
+	}
+
+
+	sol->m_puzzle = new Cell*[m_Rows];
 
 	for (int i = 0; i < m_Rows; i++)
 	{
-		newPuz[i] = new Cell[m_Cols];
-
+		sol->m_puzzle[i] = new Cell[m_Cols];
 		for (int j = 0; j < m_Cols; j++)
 		{
 			int val = rand() % (m_max - m_min + 1) + m_min;
-			newPuz[i][j].m_value = val;
-			newPuz[i][j].m_row = i;
-			newPuz[i][j].m_col = j;
+			sol->m_puzzle[i][j].m_value = 0;
+			sol->m_puzzle[i][j].m_value = val;
+			sol->m_puzzle[i][j].m_row = i;
+			sol->m_puzzle[i][j].m_col = j;
 		}
 	}
-	newPuz[0][0].m_fCost = 0;//set first cost to 0
-	newPuz[m_Rows - 1][m_Cols - 1].m_value = 0;
+	sol->m_puzzle[0][0].m_fCost = 0;//set first cost to 0
+	sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_value = 0;
 
-	return newPuz;
 }
 //done (no hillclimbing yet)
 void Puzzle::checkPuzzle()
 {
-	PuzSolution* sol = new PuzSolution(m_Rows, m_Cols);
-
-	if (m_bestSol == NULL || m_bestSol->m_solution == false) //we want to try and generate a puzzle with a solution first. then hill climb
+	//if (m_bestSol == NULL || m_bestSol->m_solution == false) //we want to try and generate a puzzle with a solution first. then hill climb
 	{
-		sol->m_puzzle = generatePuzzle();
+		generatePuzzle(m_sol);
 	}
-	else//perform hillclimbing here
+	//else//perform hillclimbing here
 	{
-		for (int i = 0; i < m_Rows; i++)
-		{
-			for (int j = 0; j < m_Cols; j++)
-			{
-				sol->m_puzzle[i][j] = m_bestSol->m_puzzle[i][j];
-			}
-		}
-		hillClimb(sol);
+		hillClimb(m_sol);
 	}
 	
-	dijkstra(sol);
-	sol->CalculateScore();
+	dijkstra(m_sol);
+	m_sol->CalculateScore();
+
+	//printPuzzle(m_sol);
+
 	if (m_bestSol == NULL)
 	{
-		m_bestSol = sol;
+		m_bestSol = new PuzSolution(m_Rows, m_Cols);
+		CopyOverSol(m_bestSol, m_sol);
 	}
-	else if (m_bestSol->m_score < sol->m_score)
+	else if (m_bestSol->m_score < m_sol->m_score)
 	{
-		//printPuzzle();
-
-		m_bestSol = sol;
+		printPuzzle(m_sol);
+		CopyOverSol(m_bestSol, m_sol);
 	}
 	else
 	{
 		//random chance of keeping it in the future
-		sol->~PuzSolution();
+
 	}
 }
 
@@ -136,7 +137,7 @@ void Puzzle::dijkstra(PuzSolution* sol)
 			sol->m_puzzle[i][j].m_path.clear();
 			sol->m_puzzle[i][j].m_Parent = NULL;
 			sol->m_puzzle[i][j].m_pathesTo = 0;
-			sol->m_puzzle[i][j].m_reachedBy.empty();
+			sol->m_puzzle[i][j].m_reachedBy.clear();
 			calculateConnectedCells(&sol->m_puzzle[i][j], sol);
 			nodes.push_back(&sol->m_puzzle[i][j]);
 		}
@@ -203,8 +204,6 @@ void Puzzle::dijkstra(PuzSolution* sol)
 			}
 		}
 	}
-
-	//backwards explore here
 	for (int i = 0; i < m_Rows; i++)
 	{
 		for (int j = 0; j < m_Cols; j++)
@@ -212,8 +211,14 @@ void Puzzle::dijkstra(PuzSolution* sol)
 			nodes.push_back(&sol->m_puzzle[i][j]);
 		}
 	}
-	backwardsExplore(nodes);
-
+	backwardsExplore(&nodes);
+	for (int i = 0; i < m_Rows; i++)
+	{
+		for (int j = 0; j < m_Cols; j++)
+		{
+			nodes.push_back(&sol->m_puzzle[i][j]);
+		}
+	}
 	//find stats here
 	findStats(nodes, sol);
 
@@ -245,13 +250,12 @@ void Puzzle::calculateConnectedCells(Cell* in_Cell, PuzSolution* sol)
 	}
 }
 
-void Puzzle::backwardsExplore(std::list<Cell*> nodes)
+void Puzzle::backwardsExplore(std::list<Cell*>* nodes)
 {
-	while (nodes.size()>0)
+	while (nodes->size()>0)
 	{
 		//pick min distance vertex of those not visited
-		Cell* l_cell = lowestCostCellBackwards(&nodes);
-
+		Cell* l_cell = lowestCostCellBackwards(nodes);
 		//update value of all childrenNodes
 		//set fcost and parentNode and steps/direction to get there
 		for (std::list<Cell*>::const_iterator itr = l_cell->m_reachedBy.begin(), end = l_cell->m_reachedBy.end(); itr != end; ++itr)
@@ -268,49 +272,60 @@ void Puzzle::backwardsExplore(std::list<Cell*> nodes)
 
 void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 {
+	sol->m_solution = false;
+	sol->m_blackHoles = 0;
+	sol->m_whiteHoles = 0;
+	sol->m_forwardForced = 0;
+	sol->m_backwardForced = 0;
+	sol->m_score = 0;
+	sol->m_path.clear();
+
 	Cell goal = sol->m_puzzle[m_Rows - 1][m_Cols - 1];//goal cell
 	if (goal.m_path.size() >= 2)//min path length
 	{
 		sol->m_solution = true;
 
-		for (std::list<Cell*>::const_iterator itr = nodes.begin(), end = nodes.end(); itr != end; ++itr)
+		for (int i = 0; i < m_Rows; i++)
 		{
-			Cell* temp = (*itr);
-			if (temp->m_explored == false)
+			for (int j = 0; j < m_Cols; j++)
 			{
-				sol->m_whiteHoles++; //can't be reached from beginning so not reachable
-			}
-			else
-			{
-				if (temp->m_connectedCells.size() == 1)//only one action leaves reachable cell
+				Cell* temp = &sol->m_puzzle[i][j];
+				if (temp->m_explored == false)
 				{
-					sol->m_forwardForced++;
+					sol->m_whiteHoles++; //can't be reached from beginning so not reachable
+				}
+				else
+				{
+					if (temp->m_connectedCells.size() == 1)//only one action leaves reachable cell
+					{
+						sol->m_forwardForced++;
+					}
+				}
+				if (temp->m_backwardsExplore == false) //can't be reached from end so not reaching
+				{
+					sol->m_blackHoles++;
+				}
+				else
+				{
+					if (temp->m_reachedBy.size() == 1)//only one cell enters this one
+					{
+						sol->m_backwardForced++;
+					}
 				}
 			}
-			if (temp->m_backwardsExplore == false) //can't be reached from end so not reaching
+			if (sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_pathesTo == 1)
 			{
-				sol->m_blackHoles++;
+				sol->m_unique = true;
 			}
-			else
-			{
-				if (temp->m_reachedBy.size() == 1)//only one cell enters this one
-				{
-					sol->m_backwardForced++;
-				}
-			}
+			sol->m_path = sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path;
 		}
-		if (sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_pathesTo == 1)
-		{
-			sol->m_unique = true;
-		}
-		sol->m_path = sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_path;
 	}
 
 }
 
 void Puzzle::hillClimb(PuzSolution* sol)
 {
-	Cell* l_cell = &sol->m_puzzle[m_Rows - 1][m_Cols - 1];
+	/*Cell* l_cell = &sol->m_puzzle[m_Rows - 1][m_Cols - 1];
 	for (std::list<Cell*>::const_iterator itr = l_cell->m_reachedBy.begin(), end = l_cell->m_reachedBy.end(); itr != end; ++itr)
 	{
 		int val = (*itr)->m_value;
@@ -402,6 +417,28 @@ Cell* Puzzle::lowestCostCellBackwards(std::list<Cell*>* in_current)
 	in_current->remove(l_cell);
 
 	return l_cell;
+}
+
+void Puzzle::CopyOverSol(PuzSolution* to, PuzSolution* from)
+{
+	to->m_solution = from->m_solution;
+	to->m_unique = from->m_unique;
+	to->m_rows = from->m_rows;
+	to->m_cols = from->m_cols;
+	to->m_blackHoles = from->m_blackHoles;
+	to->m_whiteHoles = from->m_whiteHoles;
+	to->m_forwardForced = from->m_forwardForced;
+	to->m_backwardForced = from->m_backwardForced;
+	to->m_score = from->m_score;
+	//from->m_path = std::list<direction>();
+	for (int i = 0; i < m_Rows; i++)
+	{
+		for (int j = 0; j < m_Cols; j++)
+		{
+			to->m_puzzle[i][j] = from->m_puzzle[i][j];
+		}
+	}
+	to->m_path = from->m_puzzle[m_Rows - 1][m_Cols - 1].m_path;
 }
 
 //PuzSolution

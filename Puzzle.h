@@ -51,22 +51,25 @@ public:
 	Puzzle(int nRows, int nColumns, int minVal, int maxVal);
 	~Puzzle();
 
-	void printPuzzle(); //prints the puzzle
-	Cell** generatePuzzle(); //generates the puzzle using the values given
+	void printPuzzle(PuzSolution* sol); //prints the puzzle
+	void generatePuzzle(PuzSolution* sol); //generates the puzzle using the values given
 	void checkPuzzle();
 	void dijkstra(PuzSolution* sol);
-	void backwardsExplore(std::list<Cell*> nodes);
+	void backwardsExplore(std::list<Cell*>* nodes);
 	void findStats(std::list<Cell*> nodes, PuzSolution* sol);
 	void hillClimb(PuzSolution* sol);
 	Cell* lowestCostCell(std::list<Cell*>* in_current);
 	Cell* lowestCostCellBackwards(std::list<Cell*>* in_current);
 
 	void calculateConnectedCells(Cell* in_Cell, PuzSolution* sol);
+	void CopyOverSol(PuzSolution* to, PuzSolution* from);
 
 	int m_Rows; //the number of rows entered
 	int m_Cols; //the number of cols entered
 	int m_min; // the min value in the range entered
 	int m_max; //the max value in the range entered
 	PuzSolution* m_bestSol; //the best puzzle solution so far
+	PuzSolution* m_sol;
+
 };
 #endif

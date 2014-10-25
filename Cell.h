@@ -35,6 +35,8 @@ class Cell{
 			delete m_connectedCells.front(), m_connectedCells.pop_front();
 		}//*/
 		m_path.clear();
+		m_connectedCells.clear();
+		m_reachedBy.clear();
 		/*while (!m_reachedBy.empty())
 		{
 			delete m_reachedBy.front(), m_reachedBy.pop_front();
