@@ -29,7 +29,7 @@ void GeneratePuzzle(int nRows, int nColumns, int minVal, int maxVal, Timer* t)
 		avgElapsed = time / runs;
 	}
 
-	puz->printPuzzle(puz->m_bestSol);
+	puz->printPuzzle(puz->althigh);
 }
 
 int main(int argc, char **argv)

@@ -10,6 +10,7 @@ Puzzle::Puzzle(int nRows, int nColumns, int minVal, int maxVal)
 	m_min = minVal;
 	m_max = maxVal;
 	m_bestSol = NULL;
+	althigh = NULL;
 	m_sol = new PuzSolution(m_Rows, m_Cols);
 
 }
@@ -78,7 +79,6 @@ void Puzzle::generatePuzzle(PuzSolution* sol)
 		for (int j = 0; j < m_Cols; j++)
 		{
 			int val = rand() % (m_max - m_min + 1) + m_min;
-			sol->m_puzzle[i][j].m_value = 0;
 			sol->m_puzzle[i][j].m_value = val;
 			sol->m_puzzle[i][j].m_row = i;
 			sol->m_puzzle[i][j].m_col = j;
@@ -91,11 +91,11 @@ void Puzzle::generatePuzzle(PuzSolution* sol)
 //done (no hillclimbing yet)
 void Puzzle::checkPuzzle()
 {
-	//if (m_bestSol == NULL || m_bestSol->m_solution == false) //we want to try and generate a puzzle with a solution first. then hill climb
+	if (m_bestSol == NULL || m_bestSol->m_solution == false) //we want to try and generate a puzzle with a solution first. then hill climb
 	{
 		generatePuzzle(m_sol);
 	}
-	//else//perform hillclimbing here
+	else//perform hillclimbing here
 	{
 		hillClimb(m_sol);
 	}
@@ -109,16 +109,30 @@ void Puzzle::checkPuzzle()
 	{
 		m_bestSol = new PuzSolution(m_Rows, m_Cols);
 		CopyOverSol(m_bestSol, m_sol);
+		if (althigh == NULL)
+		{
+			althigh = new PuzSolution(m_Rows, m_Cols);
+			CopyOverSol(althigh, m_bestSol);
+		}
 	}
 	else if (m_bestSol->m_score < m_sol->m_score)
 	{
 		printPuzzle(m_sol);
 		CopyOverSol(m_bestSol, m_sol);
+		if (m_bestSol->m_score > althigh->m_score)
+		{
+			CopyOverSol(althigh, m_bestSol);
+		}
 	}
 	else
 	{
 		//random chance of keeping it in the future
-
+		int val = rand() % 1000;
+		if (val < 3)
+		{
+			printPuzzle(m_sol);
+			CopyOverSol(m_bestSol, m_sol);
+		}
 	}
 }
 
@@ -325,20 +339,42 @@ void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 
 void Puzzle::hillClimb(PuzSolution* sol)
 {
-	/*Cell* l_cell = &sol->m_puzzle[m_Rows - 1][m_Cols - 1];
-	for (std::list<Cell*>::const_iterator itr = l_cell->m_reachedBy.begin(), end = l_cell->m_reachedBy.end(); itr != end; ++itr)
-	{
-		int val = (*itr)->m_value;
+	int iv = rand() % (m_Rows);
+	int jv = rand() % (m_Cols);
 
-		if (val <= m_min)
+	if (iv == (m_Rows - 1) & jv == (m_Cols - 1))
+	{
+		iv--;
+	}
+
+	for (int i = 0; i < m_Rows; i++)
+	{
+		delete[] sol->m_puzzle[i];
+	}
+
+
+	sol->m_puzzle = new Cell*[m_Rows];
+
+	for (int i = 0; i < m_Rows; i++)
+	{
+		sol->m_puzzle[i] = new Cell[m_Cols];
+		for (int j = 0; j < m_Cols; j++)
 		{
-			(*itr)->m_value = m_max;
+			if (jv == j & iv == i)
+			{
+				int val = rand() % (m_max - m_min + 1) + m_min;
+				sol->m_puzzle[i][j].m_value = val;
+			}
+			else
+			{
+				sol->m_puzzle[i][j].m_value = m_bestSol->m_puzzle[i][j].m_value;
+			}
+			sol->m_puzzle[i][j].m_row = i;
+			sol->m_puzzle[i][j].m_col = j;
 		}
-		else
-		{
-			(*itr)->m_value-=1;
-		}
-	}//*/
+	}
+	sol->m_puzzle[0][0].m_fCost = 0;//set first cost to 0
+	sol->m_puzzle[m_Rows - 1][m_Cols - 1].m_value = 0;
 }
 
 //returns the lowest cost cell in the unexplored set

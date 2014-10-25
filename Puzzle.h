@@ -70,6 +70,7 @@ public:
 	int m_max; //the max value in the range entered
 	PuzSolution* m_bestSol; //the best puzzle solution so far
 	PuzSolution* m_sol;
+	PuzSolution* althigh;
 
 };
 #endif
