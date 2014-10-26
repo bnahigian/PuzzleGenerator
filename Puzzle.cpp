@@ -12,7 +12,7 @@ Puzzle::Puzzle(int nRows, int nColumns, int minVal, int maxVal)
 	m_bestSol = NULL;
 	althigh = NULL;
 	m_sol = new PuzSolution(m_Rows, m_Cols);
-
+	maxScore = m_Rows*m_Cols * 5 + m_Rows*m_Cols; //longest possible path* 5 + unique sol. no penalties
 }
 
 Puzzle::~Puzzle()
@@ -117,7 +117,7 @@ void Puzzle::checkPuzzle()
 	}
 	else if (m_bestSol->m_score < m_sol->m_score)
 	{
-		printPuzzle(m_sol);
+		//printPuzzle(m_sol);
 		CopyOverSol(m_bestSol, m_sol);
 		if (m_bestSol->m_score > althigh->m_score)
 		{
@@ -128,9 +128,14 @@ void Puzzle::checkPuzzle()
 	{
 		//random chance of keeping it in the future
 		int val = rand() % 1000;
-		if (val < 3)
+		//so we want a higher chance to keep scores closer to the max score and ones that aren't that much "worse" than our best score here
+		//we want a low chance though so we put it down to a .x%. I used .3% earlier and that was good but this works better
+		float keepProb = ((float)m_sol->m_score / maxScore) / (float)(m_bestSol->m_score - m_sol->m_score);
+		keepProb = keepProb / 20;
+
+		if (val < keepProb)
 		{
-			printPuzzle(m_sol);
+			//printPuzzle(m_sol);
 			CopyOverSol(m_bestSol, m_sol);
 		}
 	}
@@ -274,11 +279,11 @@ void Puzzle::backwardsExplore(std::list<Cell*>* nodes)
 		//set fcost and parentNode and steps/direction to get there
 		for (std::list<Cell*>::const_iterator itr = l_cell->m_reachedBy.begin(), end = l_cell->m_reachedBy.end(); itr != end; ++itr)
 		{
-			int val = (*itr)->m_fCost;
+			int val = (*itr)->m_backCost;
 			Cell* child = *itr;
-			if ((l_cell->m_fCost + 1) < val)
+			if ((l_cell->m_backCost + 1) < val)
 			{
-				child->m_fCost = l_cell->m_fCost + 1;
+				child->m_backCost = l_cell->m_backCost + 1;
 			}
 		}
 	}
@@ -304,7 +309,7 @@ void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 			for (int j = 0; j < m_Cols; j++)
 			{
 				Cell* temp = &sol->m_puzzle[i][j];
-				if (temp->m_explored == false)
+				if (temp->m_fCost == INT_MAX & temp->m_backCost != INT_MAX)
 				{
 					sol->m_whiteHoles++; //can't be reached from beginning so not reachable
 				}
@@ -315,7 +320,7 @@ void Puzzle::findStats(std::list<Cell*> nodes, PuzSolution* sol)
 						sol->m_forwardForced++;
 					}
 				}
-				if (temp->m_backwardsExplore == false) //can't be reached from end so not reaching
+				if (temp->m_fCost != INT_MAX & temp->m_backCost == INT_MAX) //can't be reached from end so not reaching
 				{
 					sol->m_blackHoles++;
 				}
@@ -431,11 +436,11 @@ Cell* Puzzle::lowestCostCellBackwards(std::list<Cell*>* in_current)
 			}
 			else
 			{
-				if (l_cell->m_fCost > (*itr)->m_fCost)
+				if (l_cell->m_backCost > (*itr)->m_backCost)
 				{
 					l_cell = *itr;
 				}
-				else if (l_cell->m_fCost == (*itr)->m_fCost)//if tied choose higher row + col
+				else if (l_cell->m_backCost == (*itr)->m_backCost)//if tied choose higher row + col
 				{
 					int val1 = l_cell->m_col + l_cell->m_row;
 					int val2 = (*itr)->m_col + (*itr)->m_row;

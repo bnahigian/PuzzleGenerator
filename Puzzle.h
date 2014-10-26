@@ -71,6 +71,6 @@ public:
 	PuzSolution* m_bestSol; //the best puzzle solution so far
 	PuzSolution* m_sol;
 	PuzSolution* althigh;
-
+	float maxScore;
 };
 #endif

@@ -21,7 +21,7 @@ void GeneratePuzzle(int nRows, int nColumns, int minVal, int maxVal, Timer* t)
 	runs++;
 	avgElapsed = t->GetElapsedTime() / runs;
 	int time = t->GetElapsedTime();
-	while ( (time + (avgElapsed*1.25f))<55)//margin of error given for slow runs
+	while ( (time + (avgElapsed*1.25f))<59)//margin of error given for slow runs
 	{
 		puz->checkPuzzle();
 		time = t->GetElapsedTime();
@@ -57,8 +57,6 @@ int main(int argc, char **argv)
 	// Print the elapsed time
     printf("Total time: %.6lf seconds\n", t.GetElapsedTime());
 
-	int x;
-	cin >> x;
 
 	return 0;
 }

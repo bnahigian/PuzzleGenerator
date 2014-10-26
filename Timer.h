@@ -2,12 +2,14 @@
 #include <time.h>
 #include <Windows.h>
 #include <stdint.h>
+#include <sys/time.h>
+
 
 class Timer{
 
 public:
 	
-	typedef struct timeval {
+	/*typedef struct timeval {
 		long tv_sec;
 		long tv_usec;
 	} timeval;
@@ -29,7 +31,7 @@ public:
 		tp->tv_sec = (long)((time - EPOCH) / 10000000L);
 		tp->tv_usec = (long)(system_time.wMilliseconds * 1000);
 		return 0;
-	}
+	}//*/
 
 	Timer(){}
 
