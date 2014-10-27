@@ -22,12 +22,11 @@ I initially kept .3% of all "bad" puzzles- ones that made the m_bestSol worse. T
 So I decided that similar to simulated annealing- which increases the probability of keeping a "bad" change based on how close to the "goal" state it is, I was going to be less likely to keep "bad" changes that were farther away from the best possible solution.
 The equation I use to determine the keep probability for each function is calculated like so:
 
-keepChance = (m_sol score / max possible score) / (m_bestSol score - m_sol score) * 30
+keepChance = (m_sol score / max possible score) / (m_bestSol score - m_sol score)
 
-This weights the score relative to the max possible score and how much "worse" it is than the best sol. The 20 at the end was to put it at an appropriately low probability similar to what i had been using before. The range tends to be between .2% and .9%. 
+This weights the score relative to the max possible score and how much "worse" it is than the best sol. There is a very small chance that the bad one is chosen and used but usually it progresses.
+This also means that a score that is tied with the m_bestSol will divide by 0, thus keeping the change because of an INF value.
 
-This new policy improved my 5x5 score slightly but caused a dramatic improvement in the 10x10. The average is about 410 and the max has been 426.
-
-This also means that a score that is tied with the m_bestSol will divide by 0, thus keeping the change
+This new policy improved my 5x5 score slightly but caused a dramatic improvement in the 10x10. The average is about 410 and the max has been 432.
 
 If you have any other questions about what I did, please don't hesitate to ask/ email me at bnahigia@usc.edu. Thanks- Brandon

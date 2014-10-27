@@ -131,7 +131,6 @@ void Puzzle::checkPuzzle()
 		//so we want a higher chance to keep scores closer to the max score and ones that aren't that much "worse" than our best score here
 		//we want a low chance though so we put it down to a .x%. I used .3% earlier and that was good but this works better
 		float keepProb = ((float)m_sol->m_score / maxScore) / (float)(m_bestSol->m_score - m_sol->m_score);
-		keepProb = keepProb * 30;
 
 		if (val < keepProb)
 		{
